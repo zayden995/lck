@@ -1,0 +1,39 @@
+---
+import '../styles/hero.css';
+import { heroLabels } from '../data/hero.js';
+import { site, whatsappLink } from '../data/site.js';
+
+const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.');
+---
+
+<section class="hero" id="hero" aria-label="LCK Tech QR payment stands">
+  <div class="hero-track" id="hero-track">
+    <div class="hero-stage" id="hero-stage">
+      <div class="hero-frame">
+        <div class="hero-glow1"></div>
+        <div class="hero-glow2"></div>
+        <div class="hero-word" aria-hidden="true">{site.name.toUpperCase()}</div>
+        <div class="hero-copy">
+          <p class="hero-eyebrow rise">QR payment stands</p>
+          <h1 class="rise">Scan.<br />Pay.<br />Done.</h1>
+          <p class="hero-sub rise">Sturdy 3D-printed QR stands for hawker stalls and small shops. Printed with your QR, ready to stand on the counter.</p>
+          <div class="hero-cta rise">
+            <a class="pill pill-light" href="#products">See pricing <span class="ar" aria-hidden="true">&#8599;</span></a>
+            <a class="pill pill-dark" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">WhatsApp us <span class="ar" aria-hidden="true">&#8599;</span></a>
+          </div>
+          <p class="hero-cue rise">Scroll to take it apart</p>
+        </div>
+      </div>
+      {heroLabels.map((l) => (
+        <div class="lbl" data-k={l.key} aria-hidden="true">
+          <i></i>
+          <div class="t"><b>{l.name}</b><span>{l.note}</span></div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/hero.js';
+</script>

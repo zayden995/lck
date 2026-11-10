@@ -1,0 +1,53 @@
+---
+import { site, whatsappLink } from '../data/site.js';
+
+const wa = whatsappLink('Hi LCK Tech, I would like to order a QR stand.');
+const details = [
+  { label: 'Phone', value: site.phone },
+  { label: 'Email', value: site.email },
+  { label: 'Address', value: site.address },
+  { label: 'Hours', value: site.hours },
+];
+const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
+---
+
+<section class="section contact" id="contact">
+  <div class="wrap grid">
+    <div class="reveal">
+      <p class="eyebrow">Contact</p>
+      <h2>Let's get your<br />stall set up.</h2>
+      <p class="lead">Tell us how many stands you need and what you want on them. Message us on WhatsApp and we will take it from there.</p>
+      <div class="cta">
+        <a class="pill pill-flame pill-lg" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">
+          Message us on WhatsApp <span class="ar" aria-hidden="true">&#8599;</span>
+        </a>
+      </div>
+      <!-- A contact form goes here later (its submissions are still to be decided). -->
+    </div>
+    <dl class="details reveal">
+      {details.map((d) => (
+        <div>
+          <dt>{d.label}</dt>
+          <dd class:list={{ ph: isPlaceholder(d.value) }}>{d.value}</dd>
+        </div>
+      ))}
+      <div>
+        <dt>WhatsApp</dt>
+        <dd class:list={{ ph: isPlaceholder(site.whatsapp) }}>{site.whatsapp}</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<style>
+  .grid { display: grid; grid-template-columns: 1fr; gap: 56px; align-items: start; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1.2fr 1fr; gap: 80px; } }
+  .lead { margin-top: 24px; }
+  .cta { margin-top: 34px; }
+  .details { margin: 0; display: grid; gap: 0; }
+  .details div { padding: 20px 0; border-top: 1px solid var(--soft-faint); }
+  .details div:last-child { border-bottom: 1px solid var(--soft-faint); }
+  dt { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--soft-dim); }
+  dd { margin: 6px 0 0; font-size: 18px; }
+  dd.ph { display: inline-block; font-size: 15px; }
+</style>

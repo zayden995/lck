@@ -1,0 +1,21 @@
+---
+import '@fontsource-variable/montserrat';
+import '../styles/global.css';
+
+const { title = 'LCK Tech | QR payment stands for hawker stalls', description = '3D-printed QR payment stands for hawker stalls and small shops.' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0b0b0c" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

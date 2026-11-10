@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Products from '../components/Products.astro';
+import Reviews from '../components/Reviews.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <Header />
+  <main id="top">
+    <Hero />
+    <About />
+    <Products />
+    <Reviews />
+    <Contact />
+  </main>
+  <Footer />
+</Base>
+
+<script>
+  // Scroll reveal: below-the-fold blocks start hidden (set here, so no JS means everything stays visible).
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.remove('is-hidden');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px' },
+    );
+    items.forEach((el, i) => {
+      if (el.getBoundingClientRect().top > window.innerHeight) {
+        el.style.transitionDelay = `${(i % 4) * 70}ms`;
+        el.classList.add('is-hidden');
+        io.observe(el);
+      }
+    });
+  }
+</script>

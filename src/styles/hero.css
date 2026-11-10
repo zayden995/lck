@@ -1,0 +1,106 @@
+/* Hero: a full-screen black stage that stays pinned while the page scrolls through a tall track.
+   Copy on the left, the 3D stand in the middle, part labels fanning out on either side. */
+
+.hero-track { position: relative; height: 560vh; }
+.hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--jet);
+}
+.hero-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--jet);
+}
+.hero-glow1 { position: absolute; inset: 0; background: var(--hero-bg1); }
+.hero-glow2 { position: absolute; inset: 0; background: var(--hero-bg2); }
+.hero-word {
+  position: absolute;
+  right: 34px;
+  bottom: 22px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 11vw;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--hero-outline);
+  z-index: 2;
+  white-space: nowrap;
+  user-select: none;
+}
+.hero-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 3; }
+.hero-stage .hero-fallback { position: absolute; inset: 0; margin: auto; height: 60%; z-index: 3; object-fit: contain; }
+
+.hero-copy {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  top: 14vh;
+  width: min(36vw, 460px);
+  padding-left: max(26px, env(safe-area-inset-left, 0px));
+  padding-right: 16px;
+}
+.hero-eyebrow { font-size: 12px; opacity: 0.9; letter-spacing: 0.04em; margin: 0 0 10px; }
+.hero-copy h1 {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(46px, 6.1vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.hero-sub { margin: 22px 0 28px; font-size: 12px; color: var(--soft-dim); max-width: 34ch; }
+.hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-cue { margin: 22px 0 0; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft-dim); }
+
+/* part labels */
+.lbl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+.lbl .t {
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--chip);
+  border: 1px solid var(--soft-faint);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.lbl.left { flex-direction: row-reverse; }
+.lbl i { display: block; height: 1px; width: 40px; background: var(--soft); opacity: 0.75; position: relative; flex: none; }
+.lbl i::before { content: ''; position: absolute; left: -3px; top: -2.5px; width: 6px; height: 6px; border-radius: 50%; background: var(--flame); }
+.lbl.left i::before { left: auto; right: -3px; }
+.lbl b { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.2; }
+.lbl span { display: block; font-size: 11px; color: var(--soft-dim); line-height: 1.3; }
+
+/* if 3D cannot run, show the flat photo and drop the long pinned scroll */
+.hero.no3d .hero-track { height: auto; }
+.hero.no3d .hero-stage { position: relative; }
+.hero.no3d .lbl { display: none; }
+
+@media (max-width: 900px) {
+  .hero-copy { top: 15vh; width: 78vw; padding-left: max(26px, env(safe-area-inset-left, 0px)); }
+  .hero-copy h1 { font-size: clamp(44px, 13vw, 70px); }
+  .hero-sub { display: none; }
+  .hero-cta { margin-top: 22px; }
+  .hero-word { font-size: 11vw; right: 22px; bottom: 20px; }
+  .hero-cue { display: none; }
+  .lbl .t { padding: 5px 8px; }
+  .lbl i { width: 20px; }
+  .lbl b { font-size: 10px; letter-spacing: 0.1em; }
+  .lbl span { display: none; }
+}

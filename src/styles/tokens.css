@@ -1,0 +1,24 @@
+/* Design tokens. The site uses three colours: jet black, soft white and flame orange,
+   plus see-through tints of them. Change a colour here and it changes everywhere. */
+:root {
+  --jet: #0b0b0c;
+  --soft: #f3f0ea;
+  --flame: #ff4d14;
+
+  --soft-dim: rgba(243, 240, 234, 0.68);
+  --soft-faint: rgba(243, 240, 234, 0.14);
+  --soft-ghost: rgba(243, 240, 234, 0.06);
+  --flame-tint: rgba(255, 77, 20, 0.14);
+
+  /* hero (Flame Glow layout) */
+  --hero-bg1: radial-gradient(58% 78% at 10% 4%, rgba(255, 77, 20, 1) 0%, rgba(255, 77, 20, 0.82) 20%, rgba(255, 77, 20, 0.32) 44%, transparent 72%);
+  --hero-bg2: radial-gradient(30% 44% at 63% 44%, rgba(255, 77, 20, 0.34), rgba(255, 77, 20, 0.1) 55%, transparent 75%);
+  --hero-outline: rgba(243, 240, 234, 0.26);
+  --chip: rgba(11, 11, 12, 0.8);
+
+  --display: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --wrap: 1200px;
+  --radius: 18px;
+}
