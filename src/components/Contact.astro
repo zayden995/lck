@@ -1,14 +1,21 @@
 ---
-import { site, whatsappLink } from '../data/site.js';
+import { site, whatsappLink, whatsappReady, isPlaceholder } from '../data/site.js';
+import { tiers, currency } from '../data/products.js';
 
 const wa = whatsappLink('Hi LCK Tech, I would like to order a QR stand.');
+const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
+const mail = `mailto:${site.email}?subject=${encodeURIComponent('QR stand enquiry')}`;
+
 const details = [
-  { label: 'Phone', value: site.phone },
-  { label: 'Email', value: site.email },
-  { label: 'Address', value: site.address },
-  { label: 'Hours', value: site.hours },
+  { label: 'WhatsApp', value: site.whatsappDisplay, href: whatsappReady() ? wa : null },
+  { label: 'Email', value: site.email, href: isPlaceholder(site.email) ? null : mail },
+  { label: 'Based in', value: site.location },
 ];
-const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
+
+const options = tiers.map((t) => ({
+  value: t.price ? `${t.name} (${currency}${t.price})` : `${t.name} (priced by design)`,
+  label: t.price ? `${t.name}, ${currency}${t.price}` : `${t.name}, priced by design`,
+}));
 ---
 
 <section class="section contact" id="contact">
@@ -16,38 +23,143 @@ const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
     <div class="reveal">
       <p class="eyebrow">Contact</p>
       <h2>Let's get your<br />stall set up.</h2>
-      <p class="lead">Tell us how many stands you need and what you want on them. Message us on WhatsApp and we will take it from there.</p>
-      <div class="cta">
-        <a class="pill pill-flame pill-lg" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">
-          Message us on WhatsApp <span class="ar" aria-hidden="true">&#8599;</span>
-        </a>
-      </div>
-      <!-- A contact form goes here later (its submissions are still to be decided). -->
+      <p class="lead">Tell us which stand you want and how many. Fill this in and it opens WhatsApp with your message ready to send.</p>
+
+      <form class="order-form" id="order-form" data-wa={site.whatsapp.replace(/\D/g, '')} novalidate>
+        <div class="row two">
+          <label>
+            <span>Stand</span>
+            <select name="stand" required>
+              {options.map((o) => <option value={o.value}>{o.label}</option>)}
+              <option value="Not sure yet">Not sure yet</option>
+            </select>
+          </label>
+          <label>
+            <span>How many</span>
+            <input name="qty" type="number" min="1" max="999" value="1" inputmode="numeric" required />
+          </label>
+        </div>
+        <div class="row two">
+          <label>
+            <span>Your name</span>
+            <input name="name" type="text" autocomplete="name" required />
+          </label>
+          <label>
+            <span>Stall or shop <em>(optional)</em></span>
+            <input name="stall" type="text" autocomplete="organization" />
+          </label>
+        </div>
+        <label>
+          <span>What should it say? <em>(optional)</em></span>
+          <textarea name="notes" rows="3" placeholder="Name, logo, UEN, colours, anything else"></textarea>
+        </label>
+        <p class="form-error" id="form-error" role="alert" hidden>Please add your name so we know who to reply to.</p>
+        <div class="actions">
+          <button class="pill pill-flame pill-lg" type="submit">
+            Send on WhatsApp <span class="ar" aria-hidden="true">&#8599;</span>
+          </button>
+          {!isPlaceholder(site.email) && (
+            <a class="alt" href={mail}>or email {site.email}</a>
+          )}
+        </div>
+      </form>
     </div>
+
     <dl class="details reveal">
       {details.map((d) => (
         <div>
           <dt>{d.label}</dt>
-          <dd class:list={{ ph: isPlaceholder(d.value) }}>{d.value}</dd>
+          <dd class:list={{ ph: isPlaceholder(d.value) }}>
+            {d.href ? <a href={d.href} {...ext(d.href)}>{d.value}</a> : d.value}
+          </dd>
         </div>
       ))}
-      <div>
-        <dt>WhatsApp</dt>
-        <dd class:list={{ ph: isPlaceholder(site.whatsapp) }}>{site.whatsapp}</dd>
-      </div>
     </dl>
   </div>
 </section>
 
 <style>
   .grid { display: grid; grid-template-columns: 1fr; gap: 56px; align-items: start; }
-  @media (min-width: 900px) { .grid { grid-template-columns: 1.2fr 1fr; gap: 80px; } }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1.3fr 1fr; gap: 80px; } }
   .lead { margin-top: 24px; }
-  .cta { margin-top: 34px; }
+
+  .order-form { margin-top: 34px; display: grid; gap: 16px; max-width: 620px; }
+  .row { display: grid; gap: 16px; }
+  @media (min-width: 560px) { .row.two { grid-template-columns: 1fr 1fr; } }
+  label { display: grid; gap: 7px; }
+  label > span { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--soft-dim); }
+  label em { font-style: normal; letter-spacing: 0.04em; text-transform: none; opacity: 0.8; }
+  input, select, textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 16px; /* 16px stops iPhones zooming in on focus */
+    color: var(--soft);
+    background: var(--soft-ghost);
+    border: 1px solid var(--soft-faint);
+    border-radius: 12px;
+    padding: 12px 14px;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--soft-dim) 50%), linear-gradient(135deg, var(--soft-dim) 50%, transparent 50%); background-position: calc(100% - 20px) 52%, calc(100% - 15px) 52%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 40px; }
+  select option { background: var(--jet); color: var(--soft); }
+  textarea { resize: vertical; min-height: 92px; }
+  input::placeholder, textarea::placeholder { color: rgba(243, 240, 234, 0.38); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--flame); background: rgba(243, 240, 234, 0.09); }
+  input[aria-invalid='true'] { border-color: var(--flame); }
+  .form-error { margin: 0; font-size: 13px; color: var(--flame); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 6px; }
+  .actions .pill { border: 0; }
+  .alt { font-size: 13px; color: var(--soft-dim); text-underline-offset: 3px; }
+  .alt:hover { color: var(--soft); }
+
   .details { margin: 0; display: grid; gap: 0; }
   .details div { padding: 20px 0; border-top: 1px solid var(--soft-faint); }
   .details div:last-child { border-bottom: 1px solid var(--soft-faint); }
   dt { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--soft-dim); }
-  dd { margin: 6px 0 0; font-size: 18px; }
+  dd { margin: 6px 0 0; font-size: 18px; overflow-wrap: anywhere; }
+  dd a { text-decoration: none; border-bottom: 1px solid var(--soft-faint); transition: border-color 0.2s ease, color 0.2s ease; }
+  dd a:hover { color: var(--flame); border-color: var(--flame); }
   dd.ph { display: inline-block; font-size: 15px; }
 </style>
+
+<script>
+  // Turns the form into a WhatsApp message. Nothing is stored or sent anywhere else.
+  const form = document.getElementById('order-form') as HTMLFormElement | null;
+  const err = document.getElementById('form-error');
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const get = (k: string) => String(data.get(k) ?? '').trim();
+    const nameInput = form.elements.namedItem('name') as HTMLInputElement;
+
+    if (!get('name')) {
+      nameInput.setAttribute('aria-invalid', 'true');
+      if (err) err.hidden = false;
+      nameInput.focus();
+      return;
+    }
+    nameInput.removeAttribute('aria-invalid');
+    if (err) err.hidden = true;
+
+    const qty = Math.max(1, parseInt(get('qty'), 10) || 1);
+    const lines = [
+      'Hi LCK Tech, I would like to order:',
+      `Stand: ${get('stand')}`,
+      `Quantity: ${qty}`,
+      `Name: ${get('name')}`,
+    ];
+    if (get('stall')) lines.push(`Stall or shop: ${get('stall')}`);
+    if (get('notes')) lines.push(`What it should say: ${get('notes')}`);
+
+    const digits = form.dataset.wa ?? '';
+    if (!digits) {
+      window.location.hash = '#contact';
+      return;
+    }
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(lines.join('\n'))}`;
+    const win = window.open(url, '_blank');
+    if (win) win.opener = null;
+    else window.location.href = url;
+  });
+</script>

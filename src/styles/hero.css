@@ -1,8 +1,11 @@
 /* Hero: a full-screen black stage that stays pinned while the page scrolls through a tall track.
-   Copy on the left, the 3D stand in the middle, part labels fanning out on either side. */
+   Copy on the left, the 3D stand in the middle, part labels fanning out on either side.
+   Behind it all, the "living background": a dot grid, drifting squares and a facts strip along the bottom.
+   Layers: glows, dots and squares (1), outline word (2), 3D stand (3), facts strip (4), copy (5), labels (6). */
 
 .hero-track { position: relative; height: 560vh; }
 .hero-stage {
+  --strip-h: 48px;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -22,7 +25,7 @@
 .hero-word {
   position: absolute;
   right: 34px;
-  bottom: 22px;
+  bottom: calc(22px + var(--strip-h)); /* sits just above the facts strip */
   text-align: right;
   font-weight: 700;
   font-size: 11vw;
@@ -34,6 +37,56 @@
   white-space: nowrap;
   user-select: none;
 }
+/* living background */
+.hero-dots {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: radial-gradient(circle, var(--hero-dot) 1.1px, transparent 1.7px);
+  background-size: 28px 28px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 85%, transparent 100%);
+}
+.hero-squares { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.hero-squares i { position: absolute; bottom: -24px; display: block; animation: hero-drift linear infinite; }
+.hero-squares .sq-flame { background: var(--flame); }
+.hero-squares .sq-soft { background: var(--soft); }
+.hero-squares .sq-line { border: 1.5px solid var(--soft); }
+@keyframes hero-drift {
+  from { transform: translateY(0) rotate(0deg); }
+  to { transform: translateY(calc(-100vh - 48px)) rotate(160deg); }
+}
+.hero-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  height: var(--strip-h);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-top: 1px solid var(--soft-faint);
+  background: var(--hero-strip);
+}
+/* the words repeat six times and slide left by half, so the loop is seamless */
+.hero-strip .run {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  animation: hero-slide var(--strip-s, 46s) linear infinite;
+}
+.hero-strip .run > * { margin-right: 26px; flex: none; }
+.hero-strip .run i { width: 6px; height: 6px; border-radius: 50%; background: var(--flame); }
+@keyframes hero-slide { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-squares i, .hero-strip .run { animation: none; }
+}
+
 .hero-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 3; }
 .hero-stage .hero-fallback { position: absolute; inset: 0; margin: auto; height: 60%; z-index: 3; object-fit: contain; }
 
@@ -41,23 +94,24 @@
   position: absolute;
   z-index: 5;
   left: 0;
-  top: 14vh;
-  width: min(36vw, 460px);
+  top: 13vh;
+  width: min(42vw, 600px);
   padding-left: max(26px, env(safe-area-inset-left, 0px));
   padding-right: 16px;
 }
-.hero-eyebrow { font-size: 12px; opacity: 0.9; letter-spacing: 0.04em; margin: 0 0 10px; }
+.hero-eyebrow { font-size: 13px; opacity: 0.9; letter-spacing: 0.04em; margin: 0 0 10px; }
 .hero-copy h1 {
   margin: 0;
   font-weight: 500;
-  font-size: clamp(46px, 6.1vw, 96px);
+  /* capped by the screen height too, so on short laptops the copy stays clear of the facts strip */
+  font-size: clamp(56px, min(7.8vw, 13vh), 124px);
   line-height: 1;
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
-.hero-sub { margin: 22px 0 28px; font-size: 12px; color: var(--soft-dim); max-width: 34ch; }
+.hero-sub { margin: 26px 0 30px; font-size: 16px; line-height: 1.55; color: var(--soft-dim); max-width: 32ch; }
 .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
-.hero-cue { margin: 22px 0 0; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft-dim); }
+.hero-cue { margin: 22px 0 0; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft-dim); }
 
 /* part labels */
 .lbl {
@@ -87,20 +141,40 @@
 .lbl b { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.2; }
 .lbl span { display: block; font-size: 11px; color: var(--soft-dim); line-height: 1.3; }
 
+/* short laptop screens: drop the scroll hint and tighten the copy, so it stays clear of the facts strip */
+@media (max-height: 720px) and (min-width: 901px) {
+  .hero-copy { top: 12vh; }
+  .hero-sub { margin: 18px 0 22px; }
+  .hero-cue { display: none; }
+}
+
 /* if 3D cannot run, show the flat photo and drop the long pinned scroll */
 .hero.no3d .hero-track { height: auto; }
 .hero.no3d .hero-stage { position: relative; }
 .hero.no3d .lbl { display: none; }
 
 @media (max-width: 900px) {
-  .hero-copy { top: 15vh; width: 78vw; padding-left: max(26px, env(safe-area-inset-left, 0px)); }
-  .hero-copy h1 { font-size: clamp(44px, 13vw, 70px); }
+  .hero-stage { --strip-h: 38px; }
+  /* wide enough for both buttons on one line, so the stand below never covers the second one */
+  .hero-copy { top: 13vh; width: min(100vw, 460px); padding-left: max(26px, env(safe-area-inset-left, 0px)); }
+  .hero-copy h1 { font-size: clamp(44px, min(15vw, 7.5vh), 76px); }
   .hero-sub { display: none; }
   .hero-cta { margin-top: 22px; }
-  .hero-word { font-size: 11vw; right: 22px; bottom: 20px; }
+  .hero-cta .pill-lg { font-size: 12px; padding: 6px 6px 6px 22px; }
+  .hero-cta .pill-lg .ar { width: 30px; height: 30px; font-size: 14px; }
+  .hero-word { font-size: 11vw; right: 22px; bottom: calc(20px + var(--strip-h)); }
   .hero-cue { display: none; }
+  .hero-dots { background-size: 22px 22px; }
+  .hero-squares i:nth-child(n + 11) { display: none; }
+  .hero-strip .run { font-size: 10px; }
+  .hero-strip .run > * { margin-right: 18px; }
   .lbl .t { padding: 5px 8px; }
   .lbl i { width: 20px; }
   .lbl b { font-size: 10px; letter-spacing: 0.1em; }
   .lbl span { display: none; }
+}
+/* very small phones: slightly tighter buttons so both still fit on one line */
+@media (max-width: 360px) {
+  .hero-cta { gap: 8px; }
+  .hero-cta .pill-lg { font-size: 11px; padding-left: 16px; gap: 8px; }
 }

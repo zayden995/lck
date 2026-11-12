@@ -1,9 +1,28 @@
 ---
 import '../styles/hero.css';
-import { heroLabels } from '../data/hero.js';
+import { heroLabels, heroLive } from '../data/hero.js';
 import { site, whatsappLink } from '../data/site.js';
+import { tiers, currency } from '../data/products.js';
+
+const from = Math.min(...tiers.filter((t) => t.price).map((t) => t.price));
 
 const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.');
+
+// The facts strip along the bottom of the hero. Six copies, so the loop never shows a gap on wide screens.
+const facts = ['PayNow QR stands', `From ${currency}${from}`, `Ready in ${site.turnaroundShort}`, 'Order on WhatsApp', `Based in ${site.location}`];
+const strip = Array.from({ length: 6 }).flatMap(() => facts);
+
+// The drifting squares. A fixed seed, so they sit in the same places on every build.
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const squares = Array.from({ length: heroLive.squares }, () => {
+  const size = Math.round(4 + rnd() * 8);
+  const kind = rnd();
+  return {
+    cls: kind < 0.25 ? 'sq-flame' : kind < 0.6 ? 'sq-soft' : 'sq-line',
+    style: `left:${(rnd() * 100).toFixed(1)}%;width:${size}px;height:${size}px;opacity:${(0.18 + rnd() * 0.3).toFixed(2)};animation-duration:${(20 + rnd() * 22).toFixed(1)}s;animation-delay:-${(rnd() * 40).toFixed(1)}s`,
+  };
+});
 ---
 
 <section class="hero" id="hero" aria-label="LCK Tech QR payment stands">
@@ -12,14 +31,19 @@ const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.'
       <div class="hero-frame">
         <div class="hero-glow1"></div>
         <div class="hero-glow2"></div>
+        <div class="hero-dots" aria-hidden="true"></div>
+        <div class="hero-squares" aria-hidden="true">{squares.map((q) => <i class={q.cls} style={q.style}></i>)}</div>
         <div class="hero-word" aria-hidden="true">{site.name.toUpperCase()}</div>
+        <div class="hero-strip" aria-hidden="true" style={`--strip-s:${heroLive.stripSeconds}s`}>
+          <div class="run">{strip.map((t) => <Fragment><span>{t}</span><i></i></Fragment>)}</div>
+        </div>
         <div class="hero-copy">
-          <p class="hero-eyebrow rise">QR payment stands</p>
+          <p class="hero-eyebrow rise">PayNow QR stands</p>
           <h1 class="rise">Scan.<br />Pay.<br />Done.</h1>
-          <p class="hero-sub rise">Sturdy 3D-printed QR stands for hawker stalls and small shops. Printed with your QR, ready to stand on the counter.</p>
+          <p class="hero-sub rise">Sturdy 3D-printed QR stands for hawker stalls and small shops. Printed with your PayNow QR, from {currency}{from}.</p>
           <div class="hero-cta rise">
-            <a class="pill pill-light" href="#products">See pricing <span class="ar" aria-hidden="true">&#8599;</span></a>
-            <a class="pill pill-dark" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">WhatsApp us <span class="ar" aria-hidden="true">&#8599;</span></a>
+            <a class="pill pill-lg pill-light" href="#products">See pricing <span class="ar" aria-hidden="true">&#8599;</span></a>
+            <a class="pill pill-lg pill-dark" href={wa} {...(wa.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>WhatsApp us <span class="ar" aria-hidden="true">&#8599;</span></a>
           </div>
           <p class="hero-cue rise">Scroll to take it apart</p>
         </div>

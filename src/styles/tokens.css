@@ -14,6 +14,8 @@
   --hero-bg1: radial-gradient(58% 78% at 10% 4%, rgba(255, 77, 20, 1) 0%, rgba(255, 77, 20, 0.82) 20%, rgba(255, 77, 20, 0.32) 44%, transparent 72%);
   --hero-bg2: radial-gradient(30% 44% at 63% 44%, rgba(255, 77, 20, 0.34), rgba(255, 77, 20, 0.1) 55%, transparent 75%);
   --hero-outline: rgba(243, 240, 234, 0.26);
+  --hero-dot: rgba(243, 240, 234, 0.16); /* the hero's dot grid */
+  --hero-strip: rgba(11, 11, 12, 0.6); /* the facts strip along the bottom of the hero */
   --chip: rgba(11, 11, 12, 0.8);
 
   --display: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;

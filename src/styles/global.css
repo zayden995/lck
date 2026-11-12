@@ -32,7 +32,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 
-.section { padding-block: clamp(72px, 11vw, 140px); position: relative; }
+.section { padding-block: clamp(72px, 11vw, 140px); position: relative; z-index: 2; } /* above the outline "LCK TECH" (z-index 1) */
 .eyebrow {
   margin: 0 0 14px;
   font-size: 12px;

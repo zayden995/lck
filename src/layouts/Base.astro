@@ -1,19 +1,69 @@
 ---
 import '@fontsource-variable/montserrat';
 import '../styles/global.css';
+import { site, isPlaceholder } from '../data/site.js';
+import { tiers } from '../data/products.js';
 
-const { title = 'LCK Tech | QR payment stands for hawker stalls', description = '3D-printed QR payment stands for hawker stalls and small shops.' } = Astro.props;
+const {
+  title = 'LCK Tech | PayNow QR stands for hawker stalls',
+  description = '3D-printed PayNow QR stands for hawker stalls and small shops in Singapore. From S$15. Order on WhatsApp.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const ogImage = new URL('/og.jpg', Astro.site ?? site.url).href;
+
+// Business details for search engines. Reviews are left out on purpose: they are samples for now.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  url: site.url,
+  logo: new URL('/favicon.svg', Astro.site ?? site.url).href,
+  ...(isPlaceholder(site.email) ? {} : { email: site.email }),
+  address: { '@type': 'PostalAddress', addressCountry: 'SG' },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'sales',
+    telephone: site.whatsappDisplay,
+    areaServed: 'SG',
+    availableLanguage: ['en'],
+  },
+  makesOffer: tiers
+    .filter((t) => t.price)
+    .map((t) => ({
+      '@type': 'Offer',
+      price: t.price,
+      priceCurrency: 'SGD',
+      itemOffered: { '@type': 'Product', name: t.name, description: t.blurb },
+    })),
+};
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en-SG">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     <meta name="theme-color" content="#0b0b0c" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title}</title>
+
+    <!-- How the link looks when shared on WhatsApp, Facebook, Telegram and so on -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Three LCK Tech PayNow QR stands: the simple stand, the stand with details and the lucky cat stand." />
+    <meta property="og:locale" content="en_SG" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
   <body>
     <slot />

@@ -1,0 +1,34 @@
+---
+// The outline "LCK TECH" that stays behind the page once the hero ends.
+// During the hero, the hero's own copy (in Hero.astro) shows instead; see src/scripts/scroll-word.js.
+import { site } from '../data/site.js';
+---
+
+<div class="scroll-word" id="scroll-word" aria-hidden="true">{site.name.toUpperCase()}</div>
+
+<style>
+  /* Matches .hero-word in hero.css (size, weight, outline), so the handover from the hero is seamless.
+     z-index 1: above the page background, below the sections (z-index 2) and the header. */
+  .scroll-word {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    font-weight: 700;
+    font-size: 11vw;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--hero-outline);
+    white-space: nowrap;
+    user-select: none;
+    pointer-events: none;
+    transform-origin: 50% 50%;
+    visibility: hidden; /* the script shows it once the hero lets go */
+    will-change: transform, opacity;
+  }
+</style>
+
+<script>
+  import '../scripts/scroll-word.js';
+</script>

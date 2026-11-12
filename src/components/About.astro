@@ -1,8 +1,12 @@
 ---
+import { tiers, currency } from '../data/products.js';
+import { site } from '../data/site.js';
+
+const from = Math.min(...tiers.filter((t) => t.price).map((t) => t.price));
 const facts = [
-  { value: '90 × 120', label: 'mm plate size' },
-  { value: '3 mm', label: 'plate thickness' },
-  { value: '[PLACEHOLDER]', label: '[PLACEHOLDER: turnaround time]', placeholder: true },
+  { value: `${currency}${from}`, label: 'starting price' },
+  { value: `${tiers.length}`, label: 'stand designs, custom included' },
+  { value: site.turnaroundShort, label: 'from order to ready' },
 ];
 ---
 
@@ -14,7 +18,7 @@ const facts = [
     </div>
     <div class="reveal">
       <p class="lead">
-        LCK Tech makes QR payment stands for hawker stalls and small shops. Every stand is 3D printed with your QR code on a flat, sturdy plate, with a foot that keeps it upright through a busy day.
+        LCK Tech makes PayNow QR stands for hawker stalls and small shops. Every stand is 3D printed with your QR code, from a simple plate to a waving lucky cat, and made to stay upright through a busy day.
       </p>
       <ul class="facts">
         {facts.map((f) => (

@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { createTimeline, animate, stagger } from 'animejs';
-import { heroLabels, heroOffsets } from '../data/hero.js';
+import { heroLabels, heroOffsets, heroColours, heroLive } from '../data/hero.js';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 const STL_URL = `${BASE}/model/LCK_QR_stand.stl`;
@@ -21,6 +21,47 @@ const SIDE = Object.fromEntries(heroLabels.map((l) => [l.key, l.side]));
 const TAU = Math.PI * 2;
 
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+
+/* ---------- colours ---------- */
+
+// The colours printed in preview_front.png (sampled from the file): amber print, white plate, black ink.
+const REF = { amber: [245, 166, 35], white: [244, 244, 244], ink: [26, 26, 26] };
+const hexRGB = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+
+// Repaint a picture: each pixel is read as a mix of amber, white and ink, and painted as the same mix of the
+// new colours. Soft edges stay soft because the mix carries over.
+function recolor(src, amberTo, whiteTo, inkTo) {
+  const c = document.createElement('canvas');
+  c.width = src.naturalWidth || src.width;
+  c.height = src.naturalHeight || src.height;
+  const g = c.getContext('2d');
+  g.drawImage(src, 0, 0);
+  const im = g.getImageData(0, 0, c.width, c.height);
+  const d = im.data;
+  const K = REF.ink;
+  const A = REF.amber.map((v, i) => v - K[i]);
+  const W = REF.white.map((v, i) => v - K[i]);
+  const aa = A[0] * A[0] + A[1] * A[1] + A[2] * A[2];
+  const ab = A[0] * W[0] + A[1] * W[1] + A[2] * W[2];
+  const bb = W[0] * W[0] + W[1] * W[1] + W[2] * W[2];
+  const det = aa * bb - ab * ab;
+  const CA = hexRGB(amberTo), CW = hexRGB(whiteTo), CK = hexRGB(inkTo);
+  for (let i = 0; i < d.length; i += 4) {
+    const p0 = d[i] - K[0], p1 = d[i + 1] - K[1], p2 = d[i + 2] - K[2];
+    const r1 = A[0] * p0 + A[1] * p1 + A[2] * p2;
+    const r2 = W[0] * p0 + W[1] * p1 + W[2] * p2;
+    let wa = clamp((bb * r1 - ab * r2) / det);
+    let ww = clamp((aa * r2 - ab * r1) / det);
+    const sum = wa + ww;
+    if (sum > 1) { wa /= sum; ww /= sum; }
+    const wk = 1 - wa - ww;
+    d[i] = wa * CA[0] + ww * CW[0] + wk * CK[0];
+    d[i + 1] = wa * CA[1] + ww * CW[1] + wk * CK[1];
+    d[i + 2] = wa * CA[2] + ww * CW[2] + wk * CK[2];
+  }
+  g.putImageData(im, 0, 0);
+  return c;
+}
 
 /* ---------- reading the model ---------- */
 
@@ -59,7 +100,7 @@ function plateBounds(img) {
 }
 
 // Split the STL into: foot, plate (base + frame), and four print layers (logo, UEN, QR, web address).
-// Colours come from the front-view photo, mapped onto each face by position.
+// The front-view photo is mapped onto each face by position, repainted in `heroColours`.
 function buildAssets(pos, img) {
   const n = pos.length / 9;
   const b = plateBounds(img);
@@ -169,16 +210,23 @@ function buildAssets(pos, img) {
     return g;
   };
 
-  const art = new THREE.MeshStandardMaterial({ map: tex(img), roughness: 0.42, metalness: 0, side: THREE.DoubleSide });
-  const base = new THREE.MeshStandardMaterial({ map: tex(sc), roughness: 0.42, metalness: 0 });
-  const amber = new THREE.MeshStandardMaterial({ color: 0xf2a024, roughness: 0.5, metalness: 0 });
+  const C = heroColours;
+  const printMat = (canvas) => new THREE.MeshStandardMaterial({ map: tex(canvas), roughness: 0.42, metalness: 0, side: THREE.DoubleSide });
+  // Solid colours are converted the same way the painted front is, so the edges match the face.
+  const solid = (hex) => new THREE.MeshStandardMaterial({ color: new THREE.Color(hex).convertSRGBToLinear(), roughness: 0.5, metalness: 0 });
+
+  const art = printMat(recolor(img, C.logo, C.plate, C.text));
+  const qr = C.qr === C.text ? art : printMat(recolor(img, C.logo, C.plate, C.qr));
+  const base = new THREE.MeshStandardMaterial({ map: tex(recolor(sc, C.frame, C.plate, C.text)), roughness: 0.42, metalness: 0 });
+  const sides = solid(C.sides);
+  const foot = C.foot === C.sides ? sides : solid(C.foot);
 
   const parts = {
-    plate: [[geo(G.plateFront), base], [geo(G.plateRest), amber]],
-    foot: [[geo(G.foot), amber]],
+    plate: [[geo(G.plateFront), base], [geo(G.plateRest), sides]],
+    foot: [[geo(G.foot), foot]],
     logo: [[geo(G.logo), art]],
     uen: [[geo(G.uen), art]],
-    qr: [[geo(G.qr), art]],
+    qr: [[geo(G.qr), qr]],
     url: [[geo(G.url), art]],
   };
 
@@ -197,7 +245,7 @@ function buildAssets(pos, img) {
 
 /* ---------- scene ---------- */
 
-const S = { ready: false, sp: 0, groups: {}, state: { rot: 0.15 }, plate: { r: 0 }, e: {} };
+const S = { ready: false, sp: 0, groups: {}, state: { rot: 0.15 }, plate: { r: 0 }, e: {}, sway: 0 };
 const labels = {};
 stage.querySelectorAll('.lbl').forEach((el) => {
   labels[el.dataset.k] = { el, line: el.querySelector('i') };
@@ -210,6 +258,18 @@ function fallback() {
     const im = document.createElement('img');
     im.className = 'hero-fallback';
     im.alt = 'The LCK Tech QR payment stand';
+    // repaint the flat photo in the stand's colours too (keeps the original if that fails)
+    im.addEventListener(
+      'load',
+      () => {
+        try {
+          im.src = recolor(im, heroColours.frame, heroColours.plate, heroColours.text).toDataURL('image/png');
+        } catch (e) {
+          /* keep the original photo */
+        }
+      },
+      { once: true },
+    );
     im.src = PHOTO_URL;
     stage.appendChild(im);
   }
@@ -258,9 +318,26 @@ function initScene() {
     S.groups[k] = g;
     S.e[k] = { e: 0 };
   }
+  // the whole stand's top and bottom in scene units, used to fit it between the buttons and the facts strip on phones
+  S.inner.updateMatrixWorld(true);
+  const bb = new THREE.Box3().setFromObject(S.inner);
+  S.box = { top: bb.max.y, bot: bb.min.y };
   buildTimeline();
   S.ready = true;
   resize();
+  // the headline's size changes once the font arrives, which moves the buttons
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(resize);
+}
+
+// Phones: the free space for the stand, from just under the hero buttons to just above the facts strip (pixels).
+function phoneRoom(h) {
+  const copy = stage.querySelector('.hero-copy');
+  const cta = stage.querySelector('.hero-cta');
+  const strip = stage.querySelector('.hero-strip');
+  return {
+    top: copy && cta ? copy.offsetTop + cta.offsetTop + cta.offsetHeight + 22 : 0,
+    bottom: h - (strip ? strip.offsetHeight : 0) - 18,
+  };
 }
 
 // One scroll-linked timeline: parts burst out in a stagger, the plate spins, hold, then merge back.
@@ -291,14 +368,27 @@ function resize() {
   S.h = h;
   S.camera.aspect = aspect;
   const half = Math.tan((14 * Math.PI) / 180);
-  const frac = narrow ? 0.3 : 0.46;
+  // frac: how much of the screen height the stand fills. shift: how far below (phones) or above centre it sits.
+  let frac = narrow ? 0.34 : 0.56;
   const shift = narrow ? 0.16 : -0.065;
-  const dH = 1.31 / frac / 2 / half, dW = 1.15 / 2 / (half * aspect);
-  const d = Math.max(dH, dW), sy = shift * (1.31 / frac);
+  const room = narrow ? phoneRoom(h) : null;
+  let d, sy;
+  for (let i = 0; i < 8; i++) {
+    const dH = 1.31 / frac / 2 / half, dW = 1.15 / 2 / (half * aspect);
+    d = Math.max(dH, dW);
+    sy = shift * (1.31 / frac);
+    if (!room || !S.box) break;
+    // phones: keep the whole stand between the buttons and the facts strip; if it cannot fit, shrink it a little
+    const V = 2 * d * half; // scene units visible from top to bottom of the screen
+    const lo = S.box.top - ((h / 2 - room.top) * V) / h;
+    const hi = S.box.bot + ((room.bottom - h / 2) * V) / h;
+    if (lo <= hi || frac <= 0.22) { sy = clamp(sy, lo, Math.max(lo, hi)); break; }
+    frac -= 0.02;
+  }
   S.camera.position.set(0, d * 0.06 + sy, d);
   S.camera.lookAt(0, sy, 0);
   // slide the stand sideways so the copy sits left and the labels have room
-  S.camera.setViewOffset(w, h, narrow ? w * 0.16 : -w * 0.14, 0, w, h);
+  S.camera.setViewOffset(w, h, narrow ? w * 0.16 : -w * 0.12, 0, w, h);
   S.camera.updateProjectionMatrix();
 }
 
@@ -350,7 +440,7 @@ function placeLabels() {
   }
 }
 
-function frame() {
+function frame(now = 0) {
   requestAnimationFrame(frame);
   if (!S.ready || !S.renderer) return;
   const r = track.getBoundingClientRect();
@@ -366,7 +456,11 @@ function frame() {
     const yk = k === 'foot' && S.narrow ? 1.25 : fy; // phones: drop the foot further so its label clears the web-address label
     S.groups[k].position.set(o[0] * e * fx, o[1] * e * yk, o[2] * e * fz);
   }
-  S.pivot.rotation.y = S.state.rot;
+  // gentle sway while the stand is whole (at the top, and once it has merged back); it fades out as the parts fly
+  const out = (S.e.foot.e + S.e.url.e + S.e.uen.e + S.e.logo.e + S.e.qr.e) / 5;
+  const swayTo = reduce ? 0 : 1 - clamp(out / 0.25);
+  S.sway += (swayTo - S.sway) * 0.08;
+  S.pivot.rotation.y = S.state.rot + heroLive.sway * S.sway * Math.sin(now * 0.0006);
   S.groups.plate.rotation.y = S.plate.r;
   placeLabels();
   S.renderer.render(S.scene, S.camera);

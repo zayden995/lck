@@ -1,14 +1,17 @@
 ---
 import { site, whatsappLink } from '../data/site.js';
 
+// Desktop shows these split around the logo (the logo itself goes back to the top).
+// The phone menu shows Home first, then the same list.
 const links = [
-  { href: '#top', label: 'Home' },
   { href: '#about', label: 'About' },
   { href: '#products', label: 'Products' },
+  { href: '#order', label: 'How to order' },
   { href: '#reviews', label: 'Reviews' },
   { href: '#contact', label: 'Contact' },
 ];
 const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.');
+const ext = wa.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {};
 ---
 
 <header class="site-header" id="site-header">
@@ -21,13 +24,16 @@ const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.'
     </a>
     <nav class="links links-r" aria-label="More">
       {links.slice(3).map((l) => <a href={l.href}>{l.label}</a>)}
-      <a class="wa" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">WhatsApp <span aria-hidden="true">&#8599;</span></a>
+      <a class="wa" href={wa} {...ext}>WhatsApp <span aria-hidden="true">&#8599;</span></a>
     </nav>
-    <button class="menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="mobile-menu">Menu</button>
+    <div class="small-actions">
+      <a class="wa wa-small" href={wa} {...ext}>WhatsApp <span aria-hidden="true">&#8599;</span></a>
+      <button class="menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="mobile-menu">Menu</button>
+    </div>
   </div>
   <nav class="mobile-menu" id="mobile-menu" aria-label="Mobile" hidden>
+    <a href="#top">Home</a>
     {links.map((l) => <a href={l.href}>{l.label}</a>)}
-    <a class="wa" href={wa} target={wa.startsWith('http') ? '_blank' : undefined} rel="noopener">WhatsApp us</a>
   </nav>
 </header>
 
@@ -49,40 +55,43 @@ const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.'
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 16px;
-    padding: 24px max(26px, env(safe-area-inset-right, 0px)) 24px max(26px, env(safe-area-inset-left, 0px));
-    font-size: 11px;
+    padding: 30px max(26px, env(safe-area-inset-right, 0px)) 30px max(26px, env(safe-area-inset-left, 0px));
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     transition: padding 0.3s ease;
   }
-  .scrolled .bar { padding-block: 14px; }
+  .scrolled .bar { padding-block: 22px; }
   .links { display: flex; gap: 30px; align-items: center; }
   .links-r { justify-content: flex-end; }
   .links a { color: var(--soft); text-decoration: none; opacity: 0.86; transition: opacity 0.2s; }
   .links a:hover { opacity: 1; }
   .brand {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     letter-spacing: 0.22em;
     line-height: 1.05;
     text-align: center;
     color: var(--soft);
     text-decoration: none;
+    white-space: nowrap;
   }
-  .brand small { display: block; font-size: 8px; letter-spacing: 0.34em; font-weight: 500; opacity: 0.8; }
+  .brand small { display: block; margin-top: 2px; font-size: 8.5px; letter-spacing: 0.34em; font-weight: 500; opacity: 0.8; }
   .wa {
     background: var(--flame);
     color: var(--jet) !important;
     opacity: 1 !important;
-    padding: 9px 16px;
+    padding: 11px 18px;
     border-radius: 999px;
     font-weight: 600;
     letter-spacing: 0.08em;
   }
+  .small-actions { display: none; justify-self: end; align-items: center; gap: 8px; }
+  .wa-small { text-decoration: none; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
   .menu-btn {
-    display: none;
-    justify-self: end;
+    min-width: 82px; /* same width for "Menu" and "Close", so the bar does not shift */
+    white-space: nowrap;
     background: var(--soft-ghost);
     border: 1px solid var(--soft-faint);
     color: var(--soft);
@@ -103,15 +112,31 @@ const wa = whatsappLink('Hi LCK Tech, I would like to ask about your QR stands.'
     border-bottom: 1px solid var(--soft-faint);
   }
   .mobile-menu a { padding: 12px 0; text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid var(--soft-faint); }
-  .mobile-menu .wa { margin-top: 12px; text-align: center; border-bottom: 0; }
+  .mobile-menu a:last-child { border-bottom: 0; }
 
-  @media (max-width: 760px) {
-    .bar { grid-template-columns: 1fr auto; padding-block: 18px; }
+  /* Below 1000px the six nav items no longer fit beside the logo, so they move into the menu. */
+  @media (max-width: 999px) {
+    .bar { grid-template-columns: 1fr auto; padding-block: 22px; }
+    .scrolled .bar { padding-block: 16px; }
     .links { display: none; }
     .brand { text-align: left; }
-    .menu-btn { display: inline-block; }
+    .small-actions { display: flex; }
   }
-  @media (min-width: 761px) { .mobile-menu { display: none; } }
+  /* On phones the WhatsApp and Menu buttons take the room the tagline needs. */
+  @media (max-width: 520px) {
+    .brand small { display: none; }
+  }
+  @media (max-width: 400px) {
+    .bar { padding-inline: max(16px, env(safe-area-inset-left, 0px)); gap: 10px; }
+    .wa-small, .menu-btn { padding-inline: 13px; }
+    .menu-btn { min-width: 74px; }
+    .brand { font-size: 15px; }
+  }
+  @media (max-width: 340px) {
+    .wa-small span { display: none; }
+    .brand { letter-spacing: 0.14em; }
+  }
+  @media (min-width: 1000px) { .mobile-menu { display: none; } }
 </style>
 
 <script>

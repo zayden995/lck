@@ -1,20 +1,24 @@
 ---
 import Base from '../layouts/Base.astro';
 import Header from '../components/Header.astro';
+import ScrollWord from '../components/ScrollWord.astro';
 import Hero from '../components/Hero.astro';
 import About from '../components/About.astro';
 import Products from '../components/Products.astro';
+import HowToOrder from '../components/HowToOrder.astro';
 import Reviews from '../components/Reviews.astro';
 import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 ---
 
 <Base>
+  <ScrollWord />
   <Header />
   <main id="top">
     <Hero />
     <About />
     <Products />
+    <HowToOrder />
     <Reviews />
     <Contact />
   </main>

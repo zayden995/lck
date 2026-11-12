@@ -36,7 +36,14 @@ const stars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
     display: flex;
     flex-direction: column;
     gap: 18px;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
   }
+  .review:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 77, 20, 0.6);
+    background: linear-gradient(160deg, rgba(255, 77, 20, 0.12), var(--soft-ghost) 60%);
+  }
+  @media (prefers-reduced-motion: reduce) { .review:hover { transform: none; } }
   .stars { color: var(--flame); letter-spacing: 0.18em; font-size: 15px; }
   blockquote { margin: 0; font-size: 17px; line-height: 1.5; flex: 1; }
   figcaption { display: grid; gap: 2px; font-size: 13px; }

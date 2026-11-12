@@ -1,8 +1,18 @@
 ---
+import { Picture } from 'astro:assets';
 import { tiers, currency } from '../data/products.js';
-import { whatsappLink } from '../data/site.js';
+import { site, whatsappLink, isPlaceholder } from '../data/site.js';
 
-const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
+const priced = tiers.filter((t) => t.price);
+const custom = tiers.find((t) => !t.price);
+
+const orderLink = (t) =>
+  whatsappLink(
+    t.price
+      ? `Hi LCK Tech, I would like to order the ${t.name} (${currency}${t.price}).`
+      : 'Hi LCK Tech, I would like a custom QR stand. Here is what I have in mind:',
+  );
+const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {});
 ---
 
 <section class="section products" id="products">
@@ -10,35 +20,73 @@ const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
     <div class="head reveal">
       <p class="eyebrow">Products and pricing</p>
       <h2>Pick your stand.</h2>
-      <p class="lead">Prices are in Singapore dollars. <span class="ph">[PLACEHOLDER: what is included, delivery]</span></p>
+      <p class="lead">{site.included} {site.delivery}</p>
     </div>
 
     <div class="cards">
-      {tiers.map((t) => {
-        const msg = t.price
-          ? `Hi LCK Tech, I would like to order ${t.label} (${currency}${t.price}).`
-          : 'Hi LCK Tech, I would like a custom QR stand. Here is what I have in mind:';
-        const href = whatsappLink(msg);
+      {priced.map((t) => {
+        const href = orderLink(t);
         return (
-          <article class:list={['card', 'reveal', { custom: !t.price }]}>
-            <div class="photo" role="img" aria-label={`${t.label} photo placeholder`}>
-              <span class="ph">[PLACEHOLDER: photo]</span>
+          <article class="card reveal" id={`stand-${t.id}`}>
+            <div class="photo">
+              <Picture
+                src={t.photo}
+                alt={t.alt}
+                formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+                widths={[360, 540, 720]}
+                sizes="(min-width: 1200px) 370px, (min-width: 760px) 31vw, 92vw"
+                loading="lazy"
+              />
             </div>
-            <p class="tier">{t.label}</p>
-            <h3 class:list={{ ph: isPlaceholder(t.name) }}>{t.name}</h3>
-            <p class="price">
-              {t.price ? (<><span class="cur">{currency}</span>{t.price}</>) : (<span class="note">{t.priceNote}</span>)}
-            </p>
-            <p class:list={['blurb', { ph: isPlaceholder(t.blurb) }]}>{t.blurb}</p>
-            <ul>
-              {t.features.map((f) => <li class:list={{ ph: isPlaceholder(f) }}>{f}</li>)}
-            </ul>
-            <a class="pill pill-light" href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener">
-              {t.price ? 'Order on WhatsApp' : 'Ask about custom'} <span class="ar" aria-hidden="true">&#8599;</span>
-            </a>
+            <div class="body">
+              <div class="title-row">
+                <h3>{t.name}</h3>
+                <p class="price"><span class="cur">{currency}</span>{t.price}</p>
+              </div>
+              <p class:list={['blurb', { ph: isPlaceholder(t.blurb) }]}>{t.blurb}</p>
+              <ul>
+                {t.features.map((f) => <li class:list={{ ph: isPlaceholder(f) }}>{f}</li>)}
+              </ul>
+              <a class="pill pill-light" href={href} {...ext(href)}>
+                Order on WhatsApp <span class="ar" aria-hidden="true">&#8599;</span>
+              </a>
+            </div>
           </article>
         );
       })}
+
+      {custom && (
+        <article class="card card-custom reveal" id={`stand-${custom.id}`}>
+          <div class="photo">
+            <Picture
+              src={custom.photo}
+              alt={custom.alt}
+              formats={['avif', 'webp']}
+                fallbackFormat="jpg"
+              widths={[480, 800, 1200]}
+              sizes="(min-width: 1200px) 700px, (min-width: 760px) 58vw, 92vw"
+              loading="lazy"
+            />
+          </div>
+          <div class="body">
+            <h3>{custom.name}</h3>
+            <p class="price"><span class="note">{custom.priceNote}</span></p>
+            <p class="blurb">{custom.blurb}</p>
+            <ul>
+              {custom.features.map((f) => <li class:list={{ ph: isPlaceholder(f) }}>{f}</li>)}
+            </ul>
+            {(() => {
+              const href = orderLink(custom);
+              return (
+                <a class="pill pill-flame" href={href} {...ext(href)}>
+                  Ask about a custom stand <span class="ar" aria-hidden="true">&#8599;</span>
+                </a>
+              );
+            })()}
+          </div>
+        </article>
+      )}
     </div>
   </div>
 </section>
@@ -47,39 +95,60 @@ const isPlaceholder = (s) => s.includes('[PLACEHOLDER');
   .head { margin-bottom: clamp(36px, 5vw, 64px); }
   .head .lead { margin-top: 18px; }
   .cards { display: grid; grid-template-columns: 1fr; gap: 18px; }
-  @media (min-width: 640px) { .cards { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1040px) { .cards { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 760px) { .cards { grid-template-columns: repeat(3, 1fr); } }
 
   .card {
     display: flex;
     flex-direction: column;
-    padding: 18px;
     border-radius: var(--radius);
     background: var(--soft-ghost);
     border: 1px solid var(--soft-faint);
+    overflow: hidden;
     transition: transform 0.25s ease, border-color 0.25s ease;
   }
   .card:hover { transform: translateY(-4px); border-color: rgba(255, 77, 20, 0.6); }
-  .card.custom { background: linear-gradient(160deg, rgba(255, 77, 20, 0.22), var(--soft-ghost) 60%); border-color: rgba(255, 77, 20, 0.5); }
 
+  /* The photos are shot on pure black, so the frame is black too and the edges disappear. */
   .photo {
-    aspect-ratio: 4 / 5;
-    border-radius: 12px;
+    aspect-ratio: 1 / 1; /* square on phones keeps the cards short; 4:5 once they sit three across */
+    background: #000;
+    overflow: hidden;
     display: grid;
     place-items: center;
-    text-align: center;
-    padding: 12px;
-    font-size: 12px;
-    background: radial-gradient(80% 70% at 50% 35%, var(--flame-tint), transparent 70%), var(--jet);
-    border: 1px dashed var(--soft-faint);
   }
-  .tier { margin: 18px 0 2px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--flame); font-weight: 600; }
-  h3 { margin: 0; font-size: 17px; font-weight: 500; line-height: 1.3; }
-  .price { margin: 14px 0 12px; font-size: clamp(40px, 4vw, 52px); font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
-  .price .cur { font-size: 0.45em; margin-right: 4px; vertical-align: 0.9em; letter-spacing: 0; color: var(--soft-dim); }
-  .price .note { font-size: 22px; letter-spacing: -0.01em; line-height: 1.2; display: inline-block; padding-block: 8px; }
-  .blurb { margin: 0 0 14px; color: var(--soft-dim); font-size: 13px; }
+  .photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.5s ease;
+  }
+  .card:hover .photo :global(img) { transform: scale(1.03); }
+  @media (min-width: 760px) { .photo { aspect-ratio: 4 / 5; } }
+
+  .body { display: flex; flex-direction: column; flex: 1; padding: 20px 20px 22px; }
+  .title-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  h3 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.25; letter-spacing: -0.005em; }
+  .price { margin: 0; font-size: clamp(30px, 3vw, 40px); font-weight: 500; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }
+  .price .cur { font-size: 0.45em; margin-right: 3px; vertical-align: 0.8em; letter-spacing: 0; color: var(--soft-dim); }
+  .blurb { margin: 14px 0 16px; color: var(--soft-dim); font-size: 13.5px; }
   ul { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 8px; font-size: 13px; flex: 1; align-content: start; }
   li { padding-top: 8px; border-top: 1px solid var(--soft-faint); }
   .pill { align-self: flex-start; }
+
+  /* Custom: full width, photo beside the text. */
+  .card-custom {
+    background: linear-gradient(120deg, rgba(255, 77, 20, 0.2), var(--soft-ghost) 55%);
+    border-color: rgba(255, 77, 20, 0.5);
+  }
+  .card-custom .photo { aspect-ratio: 1600 / 649; }
+  .card-custom .price { margin: 12px 0 0; }
+  .card-custom .price .note { font-size: 22px; letter-spacing: -0.01em; line-height: 1.2; color: var(--flame); }
+  .card-custom .blurb { max-width: 46ch; }
+  @media (min-width: 760px) {
+    .card-custom { grid-column: 1 / -1; flex-direction: row; }
+    .card-custom .photo { flex: 1.45; aspect-ratio: auto; min-height: 280px; }
+    .card-custom .body { flex: 1; padding: clamp(24px, 3vw, 40px); justify-content: center; }
+    .card-custom h3 { font-size: clamp(22px, 2.2vw, 30px); }
+    .card-custom ul { flex: 0; }
+  }
 </style>

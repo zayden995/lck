@@ -1,0 +1,57 @@
+---
+import { site, isPlaceholder } from '../data/site.js';
+
+// Step 3 uses the turnaround and delivery lines from src/data/site.js.
+const steps = [
+  {
+    title: 'Pick your stand',
+    text: 'Choose one of the three designs above, or ask us for a custom one.',
+  },
+  {
+    title: 'Send us your QR',
+    text: 'WhatsApp us your PayNow QR, plus the name, logo or UEN you want printed on it.',
+  },
+  {
+    title: 'We print it for you',
+    text: `Your stand is usually ready in ${site.turnaround}. ${site.delivery}`,
+  },
+];
+---
+
+<section class="section order" id="order">
+  <div class="wrap">
+    <div class="head reveal">
+      <p class="eyebrow">How to order</p>
+      <h2>Three steps.<br />All on WhatsApp.</h2>
+    </div>
+    <ol class="steps">
+      {steps.map((s, i) => (
+        <li class="reveal">
+          <span class="num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <h3>{s.title}</h3>
+          <p class:list={{ ph: isPlaceholder(s.text) }}>{s.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .head { margin-bottom: clamp(36px, 5vw, 64px); }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 18px; counter-reset: none; }
+  @media (min-width: 760px) { .steps { grid-template-columns: repeat(3, 1fr); gap: 32px; } }
+  .steps li { border-top: 1px solid var(--soft-faint); padding-top: 22px; }
+  .num {
+    display: block;
+    font-size: clamp(64px, 8vw, 112px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--flame);
+    margin-bottom: 18px;
+  }
+  h3 { margin: 0 0 8px; font-size: 19px; font-weight: 600; }
+  p { margin: 0; color: var(--soft-dim); font-size: 14.5px; max-width: 36ch; }
+  p.ph { display: inline; color: var(--flame); }
+</style>
