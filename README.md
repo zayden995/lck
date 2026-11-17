@@ -52,7 +52,7 @@ Anything still showing `[PLACEHOLDER]` on the page is styled in orange with a da
 
 ## Products layout
 
-The three priced stands sit three across from 760px wide, with a square photo on phones and a 4:5 photo above that. The custom stand is a full-width card underneath, with its wide photo beside the text. Every "Order on WhatsApp" button opens WhatsApp with a message naming that stand and its price.
+The three priced stands sit three across from 760px wide, with a square photo on phones and a 4:5 photo above that. Each photo is pinned to its frame's corners (`Products.astro`) and shown whole (`object-fit: contain`), so none is cropped. The custom stand is a full-width card underneath, with its wide photo beside the text. Every "Order on WhatsApp" button opens WhatsApp with a message naming that stand and its price.
 
 ## Contact and the order form
 
@@ -102,7 +102,7 @@ The hero's glow, outline text, dot grid and facts strip have their own tokens th
   - The stand sways gently while it is whole (at the top, and after it merges back). The sway fades out as the parts fly, so the labels do not wobble.
   - With reduced motion on, the squares and the strip stand still and the stand does not sway.
 - **Size and placement:** on wide screens the stand fills 56% of the screen height, just right of centre. The headline is up to 7.8% of the screen width but never more than 13% of its height, so the copy stays clear of the strip on short laptops. Below 720px tall, the "Scroll to take it apart" hint is hidden and the copy is tightened for the same reason.
-- **Phones** (screen narrower than 0.8 × its height): the script measures the space between the hero buttons and the facts strip (`phoneRoom` in `hero.js`) and fits the stand inside it, shrinking it if needed. So if the phone copy or buttons change, the stand moves to match. The text column is wide enough for both buttons on one line; below 360px wide the buttons are slightly smaller.
+- **Phones** (screen narrower than 0.8 × its height): the script measures the space between the hero buttons and the facts strip (`phoneRoom` in `hero.js`) and fits the stand inside it, shrinking it if needed. So if the phone copy or buttons change, the stand moves to match. The camera has two views, blended by how far the parts have flown out (`applyCamera` in `hero.js`): while the stand is whole it is centred and as big as that space and the screen width allow (up to `PHONE_REST_MAX`, 1.6× the burst view); as the parts fly out the camera eases back to the burst view, which is sized and shifted left so the labels fit on the right. Wide screens use the burst view only. The text column is wide enough for both buttons on one line; below 360px wide the buttons are slightly smaller.
 - Timeline: parts burst out in a stagger (foot, web address, UEN, logo, QR code), the base plate spins one full turn, they hold with labels showing, then merge back in reverse order.
 - Labels sit on the side of the screen each part moves toward (`side` in `src/data/hero.js`). On phones every label sits on the right.
 - To change the scroll length, edit the track height. To change where a part goes, edit `heroOffsets` in `src/data/hero.js` (millimetres: x right, y up, z toward you).

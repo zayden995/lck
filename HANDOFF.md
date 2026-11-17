@@ -1,10 +1,10 @@
 # HANDOFF
 
-Last updated: 2026-11-12
+Last updated: 2026-11-17
 
 ## Current state
 
-The site is built and runs. It has a header, a 3D hero, About, Products, How to order, Reviews, Contact and a footer. The first build is committed (`cc438a4`) and pushed to `origin/main` on GitHub. Everything from the 2026-11-12 session below is **not committed yet**. The dev server is stopped, so `npm run dev` is free.
+The site is built and runs. It has a header, a 3D hero, About, Products, How to order, Reviews, Contact and a footer. The first build is commit `cc438a4`. Everything from the 2026-11-12 session below is commit `28bc5fb` ("Fill in real details, add ordering, and liven up the hero"). Both are pushed to `origin/main` on GitHub (github.com/zayden995/lck). The dev server is stopped, so `npm run dev` is free.
 
 Checked on 2026-11-12: the build succeeds. In Chrome, I looked at every section at desktop width, and at 390, 375, 360, 320, 820, 1000 and 1200px wide (in frames, because the browser window could not be resized). The phone menu opens and closes, the order form shows its error when the name is empty and builds the right WhatsApp message when filled in (Chinese characters included), and the browser console shows no errors.
 
@@ -15,6 +15,15 @@ Fourth round (text reaches the centre in one screen) checked in Chrome at deskto
 Fifth round (the fuller hero, option E) checked in Chrome: the build succeeds; at desktop width the dot grid, drifting squares, facts strip and sway all run, the burst labels stay clear of the headline and the strip, and the "LCK TECH" handover still lines up (within half a pixel). Phone frames at 405 × 844, 390 × 667, 375 × 740 and 335 × 583: both hero buttons on one line, the stand clear of the buttons and the strip, at rest and during the burst. Laptop frames at 1366 × 640, 1280 × 720, 1024 × 700 and 1366 × 768: the copy clear of the strip. No sideways scrolling, no console errors.
 
 Not checked: a real phone, Safari or Firefox, a real WhatsApp send from the form, how the link preview looks when actually shared (that needs the site to be live), the reduced-motion setting, and the repainted flat photo that shows only when 3D cannot run.
+
+## Sixth round on 2026-11-17: phone fixes (from your phone test)
+
+You looked at the site on your phone and said the stand photos under "Pick your stand" were slightly cut off, and the hero stand felt cramped. Changes are **not committed yet**.
+
+- **Cut-off product photos, cause:** Astro wraps each image in a `<picture>`, and the CSS gave the image `height: 100%` of a frame whose height only came from `aspect-ratio`. That height was not definite, so the image kept its own proportions and overflowed the frame, and the frame clipped it. Measured at 390px wide: the frame was 341 × 341 but the stand photos rendered 341 × 455, so about 57px was lost at the top and bottom (21px on the lucky cat). It also happened on desktop (4:5 frame). **Fix:** the `<picture>` and image are now pinned to the frame's corners (`Products.astro`), so `object-fit: contain` shows each photo whole. Checked: image and frame are the same size on phone and desktop.
+- **Hero stand on phones, cause:** the burst needs the full width (parts fly left to the screen edge, labels sit in a column on the right), so the whole stand was sized and shifted for the burst, even though at rest it only filled about half of the free space under the buttons. **Fix:** on phones the stand is now bigger and centred while whole (as big as the space between the buttons and the facts strip and the screen width allow, capped at 1.6× the burst size), and the camera eases back to the old burst view as the parts fly out. The burst itself looks as it did. Wide screens are unchanged. New code: `applyCamera`, `PHONE_REST_MAX`, `PLATE_HALF_W` in `hero.js`.
+- **Checked in Chrome (frames, not a real phone):** build succeeds; hero at 390 × 844, 360 × 640, 320 × 570 and 820 × 1180: stand clear of the buttons and the strip; burst at 390 × 844 same as before; products at 390px and desktop; no sideways scrolling, no console errors. **Not checked:** a real phone, and the smooth zoom between whole and burst while actually scrolling (only the two end views were looked at).
+- **Still crowded (not changed):** during the burst on phones, "Base plate" and "QR code" labels sit close together and the left-flying parts reach the screen edge. This was already noted under Traps.
 
 ## What changed on 2026-11-12
 
@@ -134,6 +143,8 @@ Earlier calls, still standing:
 - `html { scroll-behavior: smooth }` is on. Scripts that call `scrollTo` and then read the position need `behavior: 'instant'`.
 - On a very short screen (small laptop, landscape phone) the burst has less room and may crowd the outline text.
 - **On phones the stand's size and height are worked out from the hero buttons** (`phoneRoom` in `hero.js`): it sits between the bottom of the buttons and the top of the facts strip. Changing the phone headline, buttons or strip height moves the stand; that is intended. On the smallest phones (about 320 × 570) the stand shrinks and the "QR code" and "Base plate" labels sit very close during the burst.
+- **Product photo frames: keep the image pinned.** If the `<picture>` / `img` go back to `height: 100%` inside the `aspect-ratio` frame, tall photos overflow and are cropped again (phones, 2026-11-17).
+- **Phone hero has two camera views** (whole stand: big and centred; burst: smaller and shifted left), blended in `frame()` by how far the parts have flown out. Labels are placed from the live camera each frame, so keep `applyCamera` before `placeLabels`.
 - **The facts strip loop needs its spacing on each item** (`margin-right`), not `gap` or padding on the row, or the loop jumps once per cycle. It also needs the six repeats in `Hero.astro` to cover very wide screens.
 - The hero copy on desktop is close to the strip on short laptops; the headline size is capped by screen height and the scroll hint hides below 720px tall. Adding lines to the hero copy can push it into the strip there.
 - The phone header is tight: logo, WhatsApp and Menu just fit at 320px. Longer button text there will push the buttons onto two lines (found and fixed on 2026-11-12).
@@ -142,10 +153,11 @@ Earlier calls, still standing:
 
 ## What should be done next
 
+0. Look at the 2026-11-17 phone fixes on your phone (the whole product photos, and the bigger stand in the hero and how it eases into the burst), then say whether to keep them, and approve a commit.
 1. Look at the fuller hero (option E) on your own screen and phone (`npm run dev`) and say if anything needs tuning: the sway, how many squares, how fast the strip slides, or the strip's words.
 2. Look at the moving "LCK TECH" and say if it needs tuning (how far it scrolls, how big it grows, how dim it gets).
 3. Review the rest of the 2026-11-12 changes (see "My calls" above) and correct the rough guesses for turnaround, delivery and what is included.
 4. Replace the sample reviews with real ones before launch.
-5. Commit this session's work once you are happy with it.
+5. Commit and push each session's work once you are happy with it.
 6. Pick where to host it, then point www.lck.com.sg at it.
 7. Check the site on a real phone and in Safari, and send one real order through the form.

@@ -113,10 +113,14 @@ const ext = (href) => (href.startsWith('http') ? { target: '_blank', rel: 'noope
     aspect-ratio: 1 / 1; /* square on phones keeps the cards short; 4:5 once they sit three across */
     background: #000;
     overflow: hidden;
-    display: grid;
-    place-items: center;
+    position: relative;
   }
+  /* Astro wraps the image in a <picture>. Both are pinned to the frame's corners, so the photo always fits inside
+     the frame (object-fit: contain). With height: 100% instead, the frame's aspect-ratio height was not definite,
+     so tall photos overflowed and were cropped on phones. */
+  .photo :global(picture) { position: absolute; inset: 0; display: block; }
   .photo :global(img) {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;

@@ -19,6 +19,8 @@ const FORCE = window.__force || null;
 const KEYS = ['plate', 'foot', 'url', 'uen', 'logo', 'qr'];
 const SIDE = Object.fromEntries(heroLabels.map((l) => [l.key, l.side]));
 const TAU = Math.PI * 2;
+const PHONE_REST_MAX = 1.6; // phones: the whole stand may be up to this many times bigger than in the burst view
+const PLATE_HALF_W = 0.47; // half the plate's width in scene units (90 mm = 0.9), plus a little for the sway
 
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 
@@ -385,11 +387,34 @@ function resize() {
     if (lo <= hi || frac <= 0.22) { sy = clamp(sy, lo, Math.max(lo, hi)); break; }
     frac -= 0.02;
   }
-  S.camera.position.set(0, d * 0.06 + sy, d);
+  // d, sy: the camera for the burst (the size and position the labels were laid out for)
+  S.cam = { d, sy, kR: 1, syR: sy, off: narrow ? w * 0.16 : -w * 0.12 };
+  if (room && S.box) {
+    // phones: while the stand is whole it has the whole space between the buttons and the facts strip, and sits
+    // centred. It is made as big as that space and the screen width allow (up to PHONE_REST_MAX times), then the
+    // camera eases back to the burst view as the parts fly out (see applyCamera).
+    const V = 2 * d * half;
+    const boxH = (S.box.top - S.box.bot) * (h / V); // the whole stand's height in pixels at k = 1
+    const roomH = room.bottom - room.top;
+    const kW = ((w / 2 - 22) * V) / (h * PLATE_HALF_W);
+    S.cam.kR = Math.max(1, Math.min(PHONE_REST_MAX, kW, roomH / boxH));
+    const mid = (S.box.top + S.box.bot) / 2;
+    S.cam.syR = mid + (((room.top + room.bottom) / 2 - h / 2) * V) / (h * S.cam.kR);
+  }
+  applyCamera(S.camT || 0);
+}
+
+// t = 0: the stand is whole (phones: bigger and centred). t = 1: the burst view. Desktop always uses the burst view.
+function applyCamera(t) {
+  const c = S.cam;
+  if (!c) return;
+  const k = c.kR + (1 - c.kR) * t, sy = c.syR + (c.sy - c.syR) * t;
+  S.camera.position.set(0, (c.d / k) * 0.06 + sy, c.d / k);
   S.camera.lookAt(0, sy, 0);
   // slide the stand sideways so the copy sits left and the labels have room
-  S.camera.setViewOffset(w, h, narrow ? w * 0.16 : -w * 0.12, 0, w, h);
+  S.camera.setViewOffset(S.w, S.h, c.off * (S.narrow ? t : 1), 0, S.w, S.h);
   S.camera.updateProjectionMatrix();
+  S.camera.updateMatrixWorld(true);
 }
 
 // 0..1 through the pinned track, with a short hold at both ends
@@ -462,6 +487,12 @@ function frame(now = 0) {
   S.sway += (swayTo - S.sway) * 0.08;
   S.pivot.rotation.y = S.state.rot + heroLive.sway * S.sway * Math.sin(now * 0.0006);
   S.groups.plate.rotation.y = S.plate.r;
+  if (S.narrow) {
+    // phones: ease from the big, centred whole-stand view to the burst view as the parts fly out
+    const u = clamp(out / 0.6);
+    S.camT = u * u * (3 - 2 * u);
+    applyCamera(S.camT);
+  }
   placeLabels();
   S.renderer.render(S.scene, S.camera);
 }
