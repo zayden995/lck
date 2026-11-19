@@ -5,7 +5,9 @@ export const site = {
   tagline: 'Leading Computing Knowledge',
   uen: '53502724M', // printed on the stand
   web: 'lck.com.sg', // printed on the stand
-  url: 'https://www.lck.com.sg', // full address, used for links shared on social media and search
+  // Where this site is live. Link previews (LinkedIn, WhatsApp...) and search engines use it,
+  // so it must be the address the site is really served from. lck.com.sg is a different site.
+  url: 'https://scanlah.lck.com.sg',
   location: 'Singapore',
 
   // WhatsApp number: digits only, country code first (e.g. 6591234567).

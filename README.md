@@ -36,7 +36,7 @@ Behind all of them sits the outline "LCK TECH" that follows the scroll: `src/com
 
 Edit these files, not the components.
 
-- `src/data/site.js`: business name, UEN, web address, full site address (`url`), where the business is based (`location`), WhatsApp number and email, plus the ordering lines:
+- `src/data/site.js`: business name, UEN, web address, the address the site is live at (`url`, used for link previews and search), where the business is based (`location`), WhatsApp number and email, plus the ordering lines:
   - `whatsapp` is digits only with the country code first (`6588567338`). `whatsappDisplay` is how it is written on the page (`+65 8856 7338`).
   - `turnaround` (How to order, step 3), `turnaroundShort` (About facts), `delivery` (Products intro and step 3) and `included` (Products intro). Change them here and every section follows.
   - If `whatsapp` is ever set back to `[PLACEHOLDER]`, every WhatsApp button points to the Contact section instead.
@@ -83,7 +83,11 @@ Product cards and review cards lift 4px and get an orange border when hovered; r
 
 `src/layouts/Base.astro` sets the page title, description, the canonical address, the link-preview tags and a block of business details for search engines (name, email, WhatsApp number, country and the three prices). The reviews are left out of that block on purpose.
 
-The live address is set in `astro.config.mjs` (`site: 'https://www.lck.com.sg'`); the preview tags use it to build full links. The link-preview picture is `public/og.jpg` (1200 × 630), made by `tools/make-og.cjs` from the three priced product photos. Run `npm run og` after changing a product photo. The script uses `sharp`, which comes installed with Astro.
+The site is live at https://scanlah.lck.com.sg (hosted on Vercel). That address is `url` in `src/data/site.js`, and `astro.config.mjs` reads it from there. The canonical address, the preview tags and the picture's full link are all built from it, so it must be the address the site is really served from. If it points anywhere else, LinkedIn and other apps follow it and show no preview. lck.com.sg (with or without www) is a different, older LCK Tech site. It is only printed on the stand (`web` in `site.js`).
+
+After a change goes live, paste the address into LinkedIn's Post Inspector (https://www.linkedin.com/post-inspector/) to make LinkedIn read the page again. Otherwise it keeps showing its old copy for up to about a week.
+
+The link-preview picture is `public/og.jpg` (1200 × 630), made by `tools/make-og.cjs` from the three priced product photos. Run `npm run og` after changing a product photo. The script uses `sharp`, which comes installed with Astro.
 
 ## Colours and type
 

@@ -1,10 +1,10 @@
 # HANDOFF
 
-Last updated: 2026-11-17
+Last updated: 2026-11-20
 
 ## Current state
 
-The site is built and runs. It has a header, a 3D hero, About, Products, How to order, Reviews, Contact and a footer. The first build is commit `cc438a4`. Everything from the 2026-11-12 session below is commit `28bc5fb` ("Fill in real details, add ordering, and liven up the hero"). Both are pushed to `origin/main` on GitHub (github.com/zayden995/lck). The dev server is stopped, so `npm run dev` is free.
+The site is built and runs. It has a header, a 3D hero, About, Products, How to order, Reviews, Contact and a footer. The first build is commit `cc438a4`. Everything from the 2026-11-12 session below is commit `28bc5fb` ("Fill in real details, add ordering, and liven up the hero"). The 2026-11-17 phone fixes are `f33ad0c`. All three are pushed to `origin/main` on GitHub (github.com/zayden995/lck). The site is live at https://scanlah.lck.com.sg, hosted on Vercel. The 2026-11-20 link-preview fix below is **not committed yet**. The dev server is stopped, so `npm run dev` is free.
 
 Checked on 2026-11-12: the build succeeds. In Chrome, I looked at every section at desktop width, and at 390, 375, 360, 320, 820, 1000 and 1200px wide (in frames, because the browser window could not be resized). The phone menu opens and closes, the order form shows its error when the name is empty and builds the right WhatsApp message when filled in (Chinese characters included), and the browser console shows no errors.
 
@@ -16,9 +16,18 @@ Fifth round (the fuller hero, option E) checked in Chrome: the build succeeds; a
 
 Not checked: a real phone, Safari or Firefox, a real WhatsApp send from the form, how the link preview looks when actually shared (that needs the site to be live), the reduced-motion setting, and the repainted flat photo that shows only when 3D cannot run.
 
+## Seventh round on 2026-11-20: LinkedIn showed no link preview
+
+You said a link to the site on LinkedIn showed no preview.
+
+- **Cause:** the site's address was set to `https://www.lck.com.sg` (my guess in the first round, taken from the stand). The site is actually live at `https://scanlah.lck.com.sg`, and lck.com.sg is a different, older LCK Tech site (IT services, built with Next.js). The live page therefore told LinkedIn that its picture was at `www.lck.com.sg/og.jpg` (404 there) and that the page itself was `www.lck.com.sg` (the old site). Google would also have treated the new site as a copy of the old one.
+- **Fix:** `url` in `src/data/site.js` is now `https://scanlah.lck.com.sg`, and `astro.config.mjs` reads it from there, so the address lives in one place. `web: 'lck.com.sg'` and the hero's "Web address" label are unchanged, because that is what is printed on the stand.
+- **Checked:** the build succeeds. In the built page, the canonical address, `og:url`, `og:image` and the business details all point at scanlah.lck.com.sg, with no `www.lck.com.sg` left. `https://scanlah.lck.com.sg/og.jpg` already loads on the live site (200, JPEG). No visible part of the page changed.
+- **Not checked yet:** the fix only reaches LinkedIn once it is committed, pushed and live on Vercel. LinkedIn also keeps its old copy of the page, so run the address through LinkedIn's Post Inspector after the deploy, then check the preview in a new post.
+
 ## Sixth round on 2026-11-17: phone fixes (from your phone test)
 
-You looked at the site on your phone and said the stand photos under "Pick your stand" were slightly cut off, and the hero stand felt cramped. Changes are **not committed yet**.
+You looked at the site on your phone and said the stand photos under "Pick your stand" were slightly cut off, and the hero stand felt cramped. Committed and pushed as `f33ad0c` ("Fix cropped product photos and give the phone hero stand more room"). You tried them and said they looked good.
 
 - **Cut-off product photos, cause:** Astro wraps each image in a `<picture>`, and the CSS gave the image `height: 100%` of a frame whose height only came from `aspect-ratio`. That height was not definite, so the image kept its own proportions and overflowed the frame, and the frame clipped it. Measured at 390px wide: the frame was 341 × 341 but the stand photos rendered 341 × 455, so about 57px was lost at the top and bottom (21px on the lucky cat). It also happened on desktop (4:5 frame). **Fix:** the `<picture>` and image are now pinned to the frame's corners (`Products.astro`), so `object-fit: contain` shows each photo whole. Checked: image and frame are the same size on phone and desktop.
 - **Hero stand on phones, cause:** the burst needs the full width (parts fly left to the screen edge, labels sit in a column on the right), so the whole stand was sized and shifted for the burst, even though at rest it only filled about half of the free space under the buttons. **Fix:** on phones the stand is now bigger and centred while whole (as big as the space between the buttons and the facts strip and the screen width allow, capped at 1.6× the burst size), and the camera eases back to the old burst view as the parts fly out. The burst itself looks as it did. Wide screens are unchanged. New code: `applyCamera`, `PHONE_REST_MAX`, `PLATE_HALF_W` in `hero.js`.
@@ -106,7 +115,7 @@ From the first round, 2026-11-12:
 - **How to order** steps 1 and 2 ("Pick your stand", "Send us your QR").
 - **Products layout:** three across plus a wide custom card, rather than four across, because the custom photo is very wide.
 - **Hero copy** now says "PayNow" and "from S$15".
-- **The live address is https://www.lck.com.sg**, taken from the stand itself. It is only used in the link-preview and search tags.
+- ~~The live address is https://www.lck.com.sg~~: wrong. That is a different site. Corrected to https://scanlah.lck.com.sg on 2026-11-20 (see the seventh round).
 - **Reviews kept out of the search-engine details**, because they are samples.
 
 Earlier calls, still standing:
@@ -150,14 +159,16 @@ Earlier calls, still standing:
 - The phone header is tight: logo, WhatsApp and Menu just fit at 320px. Longer button text there will push the buttons onto two lines (found and fixed on 2026-11-12).
 - Product photos are on pure black (`#000`), and the card photo frames are `#000` to match. A photo with a different background will show a visible box.
 - After changing a product photo, run `npm run og` or the link preview will still show the old one.
+- **The site address (`url` in `site.js`) must be where the site is really served.** If it points anywhere else, link previews break (LinkedIn showed none on 2026-11-20). lck.com.sg is a separate, older site. If the site ever moves, change `url` and run the new address through LinkedIn's Post Inspector.
 
 ## What should be done next
 
-0. Look at the 2026-11-17 phone fixes on your phone (the whole product photos, and the bigger stand in the hero and how it eases into the burst), then say whether to keep them, and approve a commit.
+0. Commit and push the link-preview fix. Once Vercel has deployed it, run https://scanlah.lck.com.sg through LinkedIn's Post Inspector and check the preview in a new LinkedIn post.
+0. Optional: tidy the "Base plate" and "QR code" labels, which still sit close together during the burst on phones.
 1. Look at the fuller hero (option E) on your own screen and phone (`npm run dev`) and say if anything needs tuning: the sway, how many squares, how fast the strip slides, or the strip's words.
 2. Look at the moving "LCK TECH" and say if it needs tuning (how far it scrolls, how big it grows, how dim it gets).
 3. Review the rest of the 2026-11-12 changes (see "My calls" above) and correct the rough guesses for turnaround, delivery and what is included.
 4. Replace the sample reviews with real ones before launch.
 5. Commit and push each session's work once you are happy with it.
-6. Pick where to host it, then point www.lck.com.sg at it.
+6. Hosting is done (Vercel, scanlah.lck.com.sg). Optional: decide whether lck.com.sg should link to it.
 7. Check the site on a real phone and in Safari, and send one real order through the form.
